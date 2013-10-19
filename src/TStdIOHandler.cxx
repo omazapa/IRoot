@@ -67,22 +67,22 @@ void TStdIOHandler::EndCapture()
     {
       fflush(stdout);
       fflush(stderr);
-      int buf_readed;
+      ssize_t buf_readed;
       
       while(true)/* read from pipe into buffer */
       {
-	buf_readed = read(StdoutPipeFd[0], fBuffer, MAX_LEN);
+	buf_readed = read(StdoutPipeFd[0], fBuffer, sizeof(fBuffer)-1);
 	if(buf_readed<=0) break;
 	StdoutPipe += fBuffer;
-	memset(fBuffer,0,MAX_LEN+1);
+	memset(fBuffer,0,sizeof(fBuffer));
       }
 
       while(true)/* read from pipe into buffer */
       {
-	buf_readed = read(StderrPipeFd[0], fBuffer, MAX_LEN);
+	buf_readed = read(StderrPipeFd[0], fBuffer, sizeof(fBuffer)-1);
 	if(buf_readed<=0) break;
 	StderrPipe += fBuffer;
-	memset(fBuffer,0,MAX_LEN+1);
+	memset(fBuffer,0,sizeof(fBuffer));
       }
 
       dup2(SavedStdoutFd, STDOUT_FILENO);  /* reconnect stdout*/

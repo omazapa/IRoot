@@ -34,7 +34,7 @@ namespace ROOT
     //this values are to capture stdout, stderr
     std::string    StdoutPipe;
     std::string    StderrPipe;
-    char fBuffer[MAX_LEN+1];
+    char fBuffer[MAX_LEN];
     int StdoutPipeFd[2];
     int StderrPipeFd[2];
     int SavedStderrFd;

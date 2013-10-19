@@ -51,29 +51,43 @@ class ROOTMagics(Magics):
         """
         super(ROOTMagics, self).__init__(shell)
         self.root = ROOT.gROOT
+        self.io_handler=PyStdIOHandler()
+
+    def flush_output(self):
+        stdout=self.io_handler.GetStdout()
+        stderr=self.io_handler.GetStderr()
+        if(stdout != ""): print(stdout, file=sys.stdout)
+        if(stderr != ""): print(stderr, file=sys.stderr)
         
     @line_cell_magic
     def root(self, line, cell=None):
         """
-        Execute code in ROOT, and pull some of the results back into the
-        Python namespace.
+        Execute code in ROOT.
         """
         src = str(line if cell is None else cell)
-        IOHandler=PyStdIOHandler()
-        IOHandler.InitCapture()
-        code=src.splitlines()
-        for cline in code:
-           try:
-	       self.root.ProcessLine(cline)
-	   except:    
-               IOHandler.EndCapture()
-               print(IOHandler.GetStdout(), file=sys.stdout)
-               print(IOHandler.GetStderr(), file=sys.stderr)
-               return False
-        IOHandler.EndCapture()
-        print(IOHandler.GetStdout(), file=sys.stdout)
-        print(IOHandler.GetStderr(), file=sys.stderr)
+        self.io_handler.Clear();
+        self.io_handler.InitCapture()
+        try:
+           Ans=self.root.ProcessLineSync(src.replace('\n',''))
+        except NotImplementedError, e:
+           self.io_handler.EndCapture()
+           print("Not Implemented Error:",e,file=sys.stderr)
+           self.flush_output()
+           return False
+        except RuntimeError, e:
+           self.io_handler.EndCapture()
+           print("Runtime Error:",e,file=sys.stderr)
+           self.flush_output()
+           return False
+        except SyntaxError, e:
+           self.io_handler.EndCapture()
+           print("Syntax Error:",e,file=sys.stderr)
+           self.flush_output()
+           return False	   
+        self.io_handler.EndCapture()
+        self.flush_output()
         return True
+      
 
 # Add to the global docstring the class information.
 __doc__ = __doc__.format(
